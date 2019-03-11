@@ -4,14 +4,19 @@ package com.example.asha.chatapplication.data.model;
  * Created by asha on 05-03-2019.
  */
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+//table name=User (id,name,token)
 
-
-
+@Entity
 public class User {
 
+    @PrimaryKey @NonNull
     @SerializedName("id")
     @Expose
     private Integer id;

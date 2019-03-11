@@ -27,10 +27,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
 SharedPreferences sp;
 
-    ArrayList<User> users;
+    List<User> users;
     private  Context context;
 
-    public RecyclerViewAdapter( ArrayList<User> users) {
+    public RecyclerViewAdapter( List<User> users) {
 
         this.users = users;
     }

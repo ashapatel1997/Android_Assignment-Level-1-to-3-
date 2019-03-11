@@ -2,6 +2,8 @@ package com.example.asha.chatapplication;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,6 +17,7 @@ import android.widget.Toast;
 
 import com.example.asha.chatapplication.data.model.Message;
 import com.example.asha.chatapplication.data.model.User;
+import com.example.asha.chatapplication.data.model.extraMessage;
 import com.example.asha.chatapplication.data.remote.APIService;
 import com.example.asha.chatapplication.data.remote.ApiUtils;
 
@@ -29,16 +32,15 @@ public class ChatMessageActivity extends AppCompatActivity {
 
 
     RecyclerView chat_recycler_view;
-  public   Button btn_sendmsg;
-  public   EditText et_sendmsg;
+    public   Button btn_sendmsg;
+    public   EditText et_sendmsg;
     Integer loggedIn_id;
     String loggedIn_name;
     String loggedIn_token;
     Integer chat_id;
     String message;
-    TextView tv_loggedIn_name;
     private APIService mAPIService;
-    ArrayList<Message> msgs;
+    List<Message> msgs;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,8 +56,8 @@ public class ChatMessageActivity extends AppCompatActivity {
         loggedIn_name=sharedPreferences.getString("name","");
         loggedIn_token=sharedPreferences.getString("token","");
 
-       int chat_id1= Integer.parseInt(getIntent().getStringExtra("chat_id"));
-       String chat_name=getIntent().getStringExtra("chat_name");
+        int chat_id1= Integer.parseInt(getIntent().getStringExtra("chat_id"));
+        String chat_name=getIntent().getStringExtra("chat_name");
 
         sharedPreferences=getSharedPreferences("chat_data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor=sharedPreferences.edit();
@@ -64,11 +66,27 @@ public class ChatMessageActivity extends AppCompatActivity {
         editor.putString("chat_name",chat_name);
         editor.commit();
 
+        MainActivity.dbClass.extraMessageInterfaceDao().deleteExtraMessage(chat_id);
+
         SharedPreferences sharedPreferences1=getSharedPreferences("chat_data",MODE_PRIVATE);
         chat_id=sharedPreferences1.getInt("chat_id",-1);
-        chat_name=sharedPreferences1.getString("chat_name","");
 
         getChatMessages();
+
+
+        if(isNetworkAvailable() && MainActivity.dbClass.extraMessageInterfaceDao().getExtraMessage(chat_id) !=null)
+        {
+            for (extraMessage e:MainActivity.dbClass.extraMessageInterfaceDao().getExtraMessage(chat_id))
+            {
+                Message m=new Message();
+                m.setMessage(e.getMessage());
+                m.setToUserId(e.getToUserId());
+                m.setFromUserId(e.getFromUserId());
+                sendMessage(m.getMessage(),m.getToUserId());
+            }
+            MainActivity.dbClass.extraMessageInterfaceDao().deleteExtraMessage(chat_id);
+        }
+
 
         btn_sendmsg.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,21 +101,96 @@ public class ChatMessageActivity extends AppCompatActivity {
 
                 SharedPreferences sharedPreferences1=getSharedPreferences("send_message_data",MODE_PRIVATE);
                 message=sharedPreferences1.getString("msg","");
-
-
-
                 sendMessage(message,chat_id);
 
             }
         });
 
-
     }
+
     private void getChatMessages()
     {
 
+        if(!isNetworkAvailable() && MainActivity.dbClass.messageInterfaceDao()!=null)
+        {
+            msgs=new ArrayList<Message>();
+            msgs=MainActivity.dbClass.messageInterfaceDao().getMessages(chat_id);
+
+            for (int i=0;i<msgs.size();i++)
+            {
+                Log.e("Message:",msgs.get(i).getMessage());
+            }
+            adapter();
+        }
+        else
+        {
+            msgs=new ArrayList<Message>();
+            Log.e("Message size=",String.valueOf(msgs.size()));
+            apiCallForGetMessages();
+
+        }
+
+    }
+
+    private  void sendMessage(String message,Integer chat_id)
+    {
+        if(!isNetworkAvailable())
+        {
+            extraMessage e=new extraMessage();
+            e.setMessage(message);
+            e.setToUserId(chat_id);
+            e.setFromUserId(loggedIn_id);
+            MainActivity.dbClass.extraMessageInterfaceDao().addExtraMessage(e);
+
+            Log.e("Extra Message:",String.valueOf(MainActivity.dbClass.extraMessageInterfaceDao().getCount(chat_id)));
+            Toast.makeText(this,"Message Will be sent as soon as network available",Toast.LENGTH_SHORT).show();
+
+        }
+        else
+        {
+            Message msg=new Message(message,chat_id);
+            Toast.makeText(this,"Message sent",Toast.LENGTH_SHORT).show();
+
+            apiCallForSendMessage(msg);
+        }
+        et_sendmsg.setText("");
+        getChatMessages();
+
+    }
+
+
+
+
+    //api calls
+    private void apiCallForSendMessage(Message msg)
+    {
+
+        Log.e("Data",msg.getMessage()+" "+String.valueOf(msg.getToUserId()));
+        Call<Void> call=mAPIService.sendMessage(loggedIn_token,msg);
+
+        call.enqueue(new Callback<Void>()
+        {
+            public void onResponse(Call<Void> call, Response<Void> response)
+            {
+                if(response.isSuccessful())
+                {
+                    Log.e("Response: ",response.toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t)
+            {
+                Toast.makeText(getApplicationContext(),"NOT OK",Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void apiCallForGetMessages()
+    {
+
         Call<List<Message>> call = mAPIService.getMessages(loggedIn_token,chat_id);
-        msgs=new ArrayList<Message>();
+
         call.enqueue(new Callback<List<Message>>() {
             @Override
             public void onResponse(Call<List<Message>> call, Response<List<Message>> response) {
@@ -109,69 +202,57 @@ public class ChatMessageActivity extends AppCompatActivity {
                     Log.e("rest response", response.toString());
                     for (int i = 0; i < response.body().size(); i++)
                     {
-                      //  Log.e("rest response","Id:"+res.get(i).getId()+ " Message:" + res.get(i).getMessage() + "  From:" + res.get(i).getFromUserId() +"  To:"+res.get(i).getToUserId()+"  Datetime:"+res.get(i).getCreatedDateTime()+"\n");
                         msg = new Message();
                         Integer msg_id=res.get(i).getId();
                         String message=res.get(i).getMessage();
                         Integer from=(res.get(i).getFromUserId());
                         Integer to=res.get(i).getToUserId();
                         String datetime=res.get(i).getCreatedDateTime();
-                            msg.setId(msg_id);
-                            msg.setMessage(message);
-                            msg.setFromUserId(from);
-                            msg.setToUserId(to);
-                            msg.setCreatedDateTime(datetime);
-                            msgs.add(msg);
+                        msg.setId(msg_id);
+                        msg.setMessage(message);
+                        msg.setFromUserId(from);
+                        msg.setToUserId(to);
+                        msg.setCreatedDateTime(datetime);
+                        msgs.add(msg);
                     }
 
-                    ChatRecyclerViewAdapter adapter = new ChatRecyclerViewAdapter(msgs);
-                    chat_recycler_view.setLayoutManager(new LinearLayoutManager(ChatMessageActivity.this));
-                    chat_recycler_view.setAdapter(adapter);
+                    Log.e("Message size=",String.valueOf(msgs.size()));
 
-
-
+                    if(MainActivity.dbClass.messageInterfaceDao().getMessages(chat_id) != msgs)
+                    {
+                        MainActivity.dbClass.messageInterfaceDao().deleteMessage(chat_id);
+                        for(Message m:msgs)
+                        {
+                            Log.e("",m.getMessage());
+                            MainActivity.dbClass.messageInterfaceDao().addMessage(m);
+                            Log.e("Message in db:",String.valueOf(MainActivity.dbClass.messageInterfaceDao().getMessages(chat_id).size()));
+                        }
+                    }
+                    adapter();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Message>> call, Throwable t) {
                 Toast.makeText(getApplicationContext(), "NOT OK", Toast.LENGTH_SHORT).show();
+                Log.e("Response:",t.toString());
             }
         });
     }
 
-    private  void sendMessage(String message,Integer chat_id)
+    private boolean isNetworkAvailable()
     {
-        //api call
-
-        Message msg=new Message(message,chat_id);
-
-        Log.e("Date:","loggedIn_token: "+loggedIn_token+"  To: "+msg.getToUserId()+" Message:"+ msg.getMessage());
-        Call<Void> call=mAPIService.sendMessage(loggedIn_token,msg);
-
-        call.enqueue(new Callback<Void>()
-        {
-            public void onResponse(Call<Void> call, Response<Void> response)
-            {
-                if(response.isSuccessful())
-                {
-                    Log.e("Response: ",response.toString());
-
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Void> call, Throwable t)
-            {
-
-                Toast.makeText(getApplicationContext(),"NOT OK",Toast.LENGTH_SHORT).show();
-            }
-        });
-        et_sendmsg.setText("");
-        getChatMessages();
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    private  void adapter()
+    {
 
-
-
+        ChatRecyclerViewAdapter adapter = new ChatRecyclerViewAdapter(msgs);
+        chat_recycler_view.setLayoutManager(new LinearLayoutManager(ChatMessageActivity.this));
+        chat_recycler_view.setAdapter(adapter);
+    }
 }

@@ -1,9 +1,5 @@
 package com.example.asha.chatapplication.data.model;
 
-/**
- * Created by asha on 06-03-2019.
- */
-
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
@@ -11,20 +7,16 @@ import android.support.annotation.NonNull;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-//table name=Message (id,message,fromUserId,toUserId,createdDateTime)
-
+/**
+ * Created by asha on 07-03-2019.
+ */
 @Entity
-public class Message {
+public class extraMessage
+{
 
 
     @PrimaryKey (autoGenerate = true)
     @NonNull
-    @SerializedName("unique")
-    @Expose
-    private Integer unique;
-
-
-
     @SerializedName("id")
     @Expose
     private Integer id;
@@ -46,23 +38,23 @@ public class Message {
     private String createdDateTime;
 
 
-    public Message(String message, Integer toUserId) {
+    public extraMessage(String message, Integer toUserId) {
         this.message = message;
         this.toUserId = toUserId;
     }
 
 
+    public extraMessage(@NonNull Integer id, String message, Integer fromUserId, Integer toUserId, String createdDateTime) {
+        this.id = id;
+        this.message = message;
+        this.fromUserId = fromUserId;
+        this.toUserId = toUserId;
+        this.createdDateTime = createdDateTime;
+    }
 
-    public Message() {
-    }
-    @NonNull
-    public Integer getUnique() {
-        return unique;
+    public extraMessage() {
     }
 
-    public void setUnique(@NonNull Integer unique) {
-        this.unique = unique;
-    }
     public Integer getId() {
         return id;
     }
@@ -104,3 +96,5 @@ public class Message {
     }
 
 }
+
+

@@ -14,6 +14,7 @@ import com.example.asha.chatapplication.data.model.Message;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by asha on 07-03-2019.
@@ -22,9 +23,9 @@ import java.util.ArrayList;
 public class ChatRecyclerViewAdapter extends RecyclerView.Adapter<ChatRecyclerViewAdapter.viewHolder>{
 
     private Context context;
-    ArrayList<Message> msgs;
+    List<Message> msgs;
 
-    public ChatRecyclerViewAdapter(ArrayList<Message> msgs) {
+    public ChatRecyclerViewAdapter(List<Message> msgs) {
         this.msgs = msgs;
     }
 

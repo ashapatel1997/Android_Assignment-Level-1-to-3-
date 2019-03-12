@@ -42,5 +42,4 @@ public interface APIService
     @POST("api/chat")
     Call<Void> sendMessage(@Header("Authorization") String authToken,@Body Message message);
 
-
 }

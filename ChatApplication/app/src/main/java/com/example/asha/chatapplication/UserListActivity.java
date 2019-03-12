@@ -19,6 +19,8 @@ import com.example.asha.chatapplication.data.remote.ApiUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -58,10 +60,24 @@ public class UserListActivity extends AppCompatActivity {
         }
         else
         {
-            getUserList();
+            //getUserList();
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate( new TimerTask()
+            {
+                public void run() {
 
+                    try {
 
+                        new AsyncTask().execute();
+
+                    } catch (Exception e) {
+
+                    }
+
+                }
+            }, 0, 10000);
         }
+
     }
 
 
@@ -79,7 +95,8 @@ public class UserListActivity extends AppCompatActivity {
                     User user = null;
                     Log.e("rest response", response.toString());
 
-                    for (int i = 0; i < response.body().size(); i++) {
+                    for (int i = 0; i < response.body().size(); i++)
+                    {
                         user = new User();
                         Integer id = Integer.parseInt(String.valueOf(res.get(i).getId()));
                         String name = String.valueOf(res.get(i).getName());
@@ -88,14 +105,15 @@ public class UserListActivity extends AppCompatActivity {
                         users.add(user);
                     }
 
-                    if (MainActivity.dbClass.userInterfaceDao().getUsers() != users) {
+                    if (MainActivity.dbClass.userInterfaceDao().getUsers() != users)
+                    {
                         MainActivity.dbClass.userInterfaceDao().deleteUsers();
-                        for (User u : users) {
+                        for (User u : users)
+                        {
                             MainActivity.dbClass.userInterfaceDao().addUser(u);
                         }
                     }
                     adapter();
-
                 }
             }
 
@@ -119,6 +137,24 @@ public class UserListActivity extends AppCompatActivity {
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+
+    public class AsyncTask extends android.os.AsyncTask<Void,Void,Void>
+    {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            getUserList();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            Log.d("done","done");
+        }
     }
 
 }

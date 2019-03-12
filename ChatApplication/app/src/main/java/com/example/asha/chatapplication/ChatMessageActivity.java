@@ -23,6 +23,8 @@ import com.example.asha.chatapplication.data.remote.ApiUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -124,13 +126,31 @@ public class ChatMessageActivity extends AppCompatActivity {
         }
         else
         {
-            msgs=new ArrayList<Message>();
-            Log.e("Message size=",String.valueOf(msgs.size()));
-            apiCallForGetMessages();
+
+            //Log.e("Message size=",String.valueOf(msgs.size()));
+           // apiCallForGetMessages();
+
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate( new TimerTask()
+            {
+                public void run() {
+
+                    try {
+
+                        new AsyncTask().execute();
+
+                    } catch (Exception e) {
+
+                    }
+
+                }
+            }, 0, 1000);
+        }
+           // new AsyncTask().execute();
 
         }
 
-    }
+
 
     private  void sendMessage(String message,Integer chat_id)
     {
@@ -188,7 +208,8 @@ public class ChatMessageActivity extends AppCompatActivity {
 
     private void apiCallForGetMessages()
     {
-
+        //msgs=null;
+        msgs=new ArrayList<Message>();
         Call<List<Message>> call = mAPIService.getMessages(loggedIn_token,chat_id);
 
         call.enqueue(new Callback<List<Message>>() {
@@ -216,7 +237,7 @@ public class ChatMessageActivity extends AppCompatActivity {
                         msgs.add(msg);
                     }
 
-                    Log.e("Message size=",String.valueOf(msgs.size()));
+                 //   Log.e("Message size=",String.valueOf(msgs.size()));
 
                     if(MainActivity.dbClass.messageInterfaceDao().getMessages(chat_id) != msgs)
                     {
@@ -250,9 +271,28 @@ public class ChatMessageActivity extends AppCompatActivity {
 
     private  void adapter()
     {
+        ChatRecyclerViewAdapter adapter= new ChatRecyclerViewAdapter(msgs);
 
-        ChatRecyclerViewAdapter adapter = new ChatRecyclerViewAdapter(msgs);
-        chat_recycler_view.setLayoutManager(new LinearLayoutManager(ChatMessageActivity.this));
-        chat_recycler_view.setAdapter(adapter);
+            chat_recycler_view.setLayoutManager(new LinearLayoutManager(ChatMessageActivity.this));
+            chat_recycler_view.setAdapter(adapter);// it works second time and later
+
+
+    }
+
+    public class AsyncTask extends android.os.AsyncTask<Void,Void,Void>
+    {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            apiCallForGetMessages();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            Log.d("done","done");
+        }
     }
 }

@@ -4,6 +4,7 @@ import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,12 +24,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-     Button loginbutton;
-     EditText usernameAdd;
-     TextView responseTv;
+    Button loginbutton;
+    EditText usernameAdd;
+    TextView responseTv;
     private APIService mAPIService;
-   public SharedPreferences sp;
+    public SharedPreferences sp;
     public String userToken;
+    public String name;
     EditText txt;
     public static databaseClass dbClass;
     @Override
@@ -36,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-       dbClass= Room.databaseBuilder(getApplicationContext(),databaseClass.class,"userdb").fallbackToDestructiveMigration().allowMainThreadQueries().build();
+        dbClass= Room.databaseBuilder(getApplicationContext(),databaseClass.class,"userdb").fallbackToDestructiveMigration().allowMainThreadQueries().build();
          /*    dbClass.extraMessageInterfaceDao().deleteExtra();
             dbClass.messageInterfaceDao().delete();
             dbClass.userInterfaceDao().deleteUsers();*/
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         {
             @Override
             public void onClick(View view) {
-                String name = usernameAdd.getText().toString().trim();
+                 name = usernameAdd.getText().toString().trim();
                 if (name.isEmpty()) {
                     usernameAdd.setError("Field can't be empty");
                     return;
@@ -64,7 +66,9 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                 }
-                sendUser(name);
+
+                new AsyncTask().execute();
+               // sendUser(name);
             }
         });
 
@@ -108,5 +112,22 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+    }
+
+    public class AsyncTask extends android.os.AsyncTask<Void,Void,Void>
+    {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            sendUser(name);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            Log.d("done","done");
+        }
     }
 }

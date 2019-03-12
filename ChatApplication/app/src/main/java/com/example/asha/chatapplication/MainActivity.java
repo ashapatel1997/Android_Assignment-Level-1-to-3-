@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                new AsyncTask().execute();
-               // sendUser(name);
+               // new AsyncTask().execute();
+                sendUser(name);
             }
         });
 

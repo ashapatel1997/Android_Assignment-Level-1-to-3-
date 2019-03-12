@@ -90,7 +90,7 @@ public class ChatMessageActivity extends AppCompatActivity {
                 }
 
             }
-        }, 0, 5000);
+        }, 0, 10000);
 
 
 
@@ -164,7 +164,7 @@ public class ChatMessageActivity extends AppCompatActivity {
                     }
 
                 }
-            }, 0, 5000);
+            }, 0, 10000);
         }
            // new AsyncTask().execute();
 

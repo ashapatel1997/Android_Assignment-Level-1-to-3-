@@ -138,10 +138,6 @@ public class ChatMessageActivity extends AppCompatActivity {
             msgs=new ArrayList<Message>();
             msgs=MainActivity.dbClass.messageInterfaceDao().getMessages(chat_id);
 
-            for (int i=0;i<msgs.size();i++)
-            {
-                Log.e("Message:",msgs.get(i).getMessage());
-            }
             adapter();
         }
         else
@@ -182,8 +178,8 @@ public class ChatMessageActivity extends AppCompatActivity {
             e.setFromUserId(loggedIn_id);
             MainActivity.dbClass.extraMessageInterfaceDao().addExtraMessage(e);
 
-            Log.e("Extra Message:",String.valueOf(MainActivity.dbClass.extraMessageInterfaceDao().getCount(chat_id)));
-           // Toast.makeText(this,"Message Will be sent as soon as network available",Toast.LENGTH_SHORT).show();
+            Log.e("Pending Message:",String.valueOf(MainActivity.dbClass.extraMessageInterfaceDao().getCount(chat_id)));
+            //Toast.makeText(this,"Message Will be sent as soon as network available",Toast.LENGTH_SHORT).show();
 
         }
         else
@@ -264,9 +260,9 @@ public class ChatMessageActivity extends AppCompatActivity {
                         MainActivity.dbClass.messageInterfaceDao().deleteMessage(chat_id);
                         for(Message m:msgs)
                         {
-                            Log.e("",m.getMessage());
+                            //Log.e("",m.getMessage());
                             MainActivity.dbClass.messageInterfaceDao().addMessage(m);
-                            Log.e("Message in db:",String.valueOf(MainActivity.dbClass.messageInterfaceDao().getMessages(chat_id).size()));
+                           // Log.e("Message in db:",String.valueOf(MainActivity.dbClass.messageInterfaceDao().getMessages(chat_id).size()));
                         }
                     }
                     adapter();

@@ -76,18 +76,23 @@ public class ChatMessageActivity extends AppCompatActivity {
         getChatMessages();
 
 
-        if(isNetworkAvailable() && MainActivity.dbClass.extraMessageInterfaceDao().getExtraMessage(chat_id) !=null)
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate( new TimerTask()
         {
-            for (extraMessage e:MainActivity.dbClass.extraMessageInterfaceDao().getExtraMessage(chat_id))
-            {
-                Message m=new Message();
-                m.setMessage(e.getMessage());
-                m.setToUserId(e.getToUserId());
-                m.setFromUserId(e.getFromUserId());
-                sendMessage(m.getMessage(),m.getToUserId());
+            public void run() {
+
+                try {
+
+                    new AsyncTask().execute();
+
+                } catch (Exception e) {
+
+                }
+
             }
-            MainActivity.dbClass.extraMessageInterfaceDao().deleteExtraMessage(chat_id);
-        }
+        }, 0, 5000);
+
+
 
 
         btn_sendmsg.setOnClickListener(new View.OnClickListener() {
@@ -110,6 +115,21 @@ public class ChatMessageActivity extends AppCompatActivity {
 
     }
 
+    private void sendMsg()
+    {
+        if(isNetworkAvailable() && MainActivity.dbClass.extraMessageInterfaceDao().getExtraMessage(chat_id) !=null)
+        {
+            for (extraMessage e:MainActivity.dbClass.extraMessageInterfaceDao().getExtraMessage(chat_id))
+            {
+                Message m=new Message();
+                m.setMessage(e.getMessage());
+                m.setToUserId(e.getToUserId());
+                m.setFromUserId(e.getFromUserId());
+                sendMessage(m.getMessage(),m.getToUserId());
+            }
+            MainActivity.dbClass.extraMessageInterfaceDao().deleteExtraMessage(chat_id);
+        }
+    }
     private void getChatMessages()
     {
 
@@ -137,14 +157,14 @@ public class ChatMessageActivity extends AppCompatActivity {
 
                     try {
 
-                        new AsyncTask().execute();
+                        new AsyncTask1().execute();
 
                     } catch (Exception e) {
 
                     }
 
                 }
-            }, 0, 1000);
+            }, 0, 5000);
         }
            // new AsyncTask().execute();
 
@@ -163,13 +183,13 @@ public class ChatMessageActivity extends AppCompatActivity {
             MainActivity.dbClass.extraMessageInterfaceDao().addExtraMessage(e);
 
             Log.e("Extra Message:",String.valueOf(MainActivity.dbClass.extraMessageInterfaceDao().getCount(chat_id)));
-            Toast.makeText(this,"Message Will be sent as soon as network available",Toast.LENGTH_SHORT).show();
+           // Toast.makeText(this,"Message Will be sent as soon as network available",Toast.LENGTH_SHORT).show();
 
         }
         else
         {
             Message msg=new Message(message,chat_id);
-            Toast.makeText(this,"Message sent",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this,"Message sent",Toast.LENGTH_SHORT).show();
 
             apiCallForSendMessage(msg);
         }
@@ -201,7 +221,7 @@ public class ChatMessageActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<Void> call, Throwable t)
             {
-                Toast.makeText(getApplicationContext(),"NOT OK",Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(),"NOT OK",Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -255,7 +275,7 @@ public class ChatMessageActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Message>> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), "NOT OK", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "NOT OK", Toast.LENGTH_SHORT).show();
                 Log.e("Response:",t.toString());
             }
         });
@@ -285,6 +305,26 @@ public class ChatMessageActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             apiCallForGetMessages();
+            //sendMsg();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            Log.d("done","done");
+        }
+    }
+
+
+    public class AsyncTask1 extends android.os.AsyncTask<Void,Void,Void>
+    {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            //apiCallForGetMessages();
+            sendMsg();
             return null;
         }
 

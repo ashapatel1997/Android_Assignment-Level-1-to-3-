@@ -83,14 +83,14 @@ public class ChatMessageActivity extends AppCompatActivity {
 
                 try {
 
-                    new AsyncTask().execute();
+                    new AsyncTask1().execute();
 
                 } catch (Exception e) {
 
                 }
 
             }
-        }, 0, 10000);
+        }, 0, 5000);
 
 
 
@@ -157,14 +157,14 @@ public class ChatMessageActivity extends AppCompatActivity {
 
                     try {
 
-                        new AsyncTask1().execute();
+                        new AsyncTask().execute();
 
                     } catch (Exception e) {
 
                     }
 
                 }
-            }, 0, 10000);
+            }, 0, 5000);
         }
            // new AsyncTask().execute();
 
@@ -291,8 +291,7 @@ public class ChatMessageActivity extends AppCompatActivity {
 
     private  void adapter()
     {
-        ChatRecyclerViewAdapter adapter= new ChatRecyclerViewAdapter(msgs);
-
+            ChatRecyclerViewAdapter adapter= new ChatRecyclerViewAdapter(msgs);
             chat_recycler_view.setLayoutManager(new LinearLayoutManager(ChatMessageActivity.this));
             chat_recycler_view.setAdapter(adapter);// it works second time and later
 
